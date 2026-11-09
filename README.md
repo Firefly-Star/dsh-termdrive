@@ -36,26 +36,29 @@ dsh plugin --profile web add github:Firefly-Star/dsh-termdrive
 
 > **注意 `dsh plugin add` 的已知副作用**：若 pnpm 因"构建脚本未批准"（`ERR_PNPM_IGNORED_BUILDS`，通常由 profile 里**其它**包的 `postinstall` 触发）中途退出，DSH 的收尾步骤不会跑，`dsh.profile.bundles` 里就不会自动补上条目。此时依赖其实已经装好，只需手动把 `dsh-termdrive` 加进 profile `package.json` 的 `dsh.profile.bundles`（这正是收尾会做的事）。
 
-## ⚠️ 维护提示：`peerDependencies` 必须列全，别"清理"掉
+## ⚠️ 本地开发用 `link:` 或正常安装，**别用 `file:`**
 
-很多插件只声明 `cordis` 和 `dsh` 两个 peer，但**本插件必须在 `peerDependencies` 里列出它实际 import 的每一个 `@deepseek-ai/*` 包**（`dsh-tools`、`dsh-skill`）：
+同一台机器、同一个插件、同一份代码，三种安装方式实测结果：
 
-```json
-"peerDependencies": {
-  "@deepseek-ai/cordis": "*",
-  "@deepseek-ai/dsh": "*",
-  "@deepseek-ai/dsh-skill": "*",
-  "@deepseek-ai/dsh-tools": "*"
-}
-```
+| 安装方式 | `node_modules` 里的形态 | import `@deepseek-ai/dsh-tools` |
+|---|---|---|
+| `link:<本地目录>` | Junction（链接型） | ✅ 可以 |
+| `github:owner/repo` 或 registry | 普通目录，且**自带 `node_modules` 为空** | ✅ 可以 |
+| `file:<本地目录>` | 指向 profile 之外的符号链接 | ❌ `ERR_MODULE_NOT_FOUND` |
 
-原因是 DSH 装载插件时，**按插件声明的 peer 列表来提供这些包的解析映射**；没声明就拿不到，插件会在启动时报
+失败的报错长这样：
 
 ```
 failed to import: ERR_MODULE_NOT_FOUND: Cannot find package '@deepseek-ai/dsh-tools'
+  imported from C:\path\to\your-plugin\lib\index.js
 ```
 
-这个坑是实测出来的：同机器上一个 peer 表不全的插件至今装不起来，而这份声明列全的可以直接工作。版本用 `*` 是为了不踩 DSH 的 peer 版本门禁（否则 DSH 升级后可能直接拒绝装载）。
+注意锚点是**插件的原始目录**（在 profile 树之外）—— 从那里向上逐级找都碰不到任何
+`node_modules/@deepseek-ai`，而 `file:` 这种形态又拿不到 DSH 提供的解析映射。
+
+**结论：本地开发用 `link:`；发布后让使用者用 `github:` / registry；不要用 `file:` 指向本地目录。**
+
+本插件同时把实际 import 的 `@deepseek-ai/*` 都写进 `peerDependencies`（版本用 `*`）。需要说明的是：**这并不能解决上面那道坎** —— 同样的声明，`file:` 下照样失败、`link:` 下照样成功。保留它的理由是：这是社区通行写法（`dsh-wsl-workspace` 就是这么声明的），而且 `*` 能避开 DSH 的 peer 版本门禁，升级 DSH 时不会因为版本不匹配被直接拒绝装载。别"清理"掉它们。
 
 ## 工具
 
