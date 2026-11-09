@@ -1,0 +1,12 @@
+# dsh-termdrive bundle patch.
+#
+# One server-side plugin, no client half. It owns tmux sessions so that:
+#   * the program under test always has a real controlling terminal (a PTY),
+#     which is the only way an interactive program behaves like it does for a
+#     human -- an agent's own shell has no TTY;
+#   * tmux runs in the DSH host process, not in the agent's sandboxed shell,
+#     so driving a terminal needs no per-call escalation;
+#   * the user can attach to the very same session and take over.
+- insert:
+    - id: termdrive
+      name: 'dsh-termdrive'

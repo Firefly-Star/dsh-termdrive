@@ -1,0 +1,56 @@
+{
+  "name": "dsh-termdrive",
+  "version": "0.1.0",
+  "description": "Drive interactive terminal programs (TUI, REPL, prompts) the way CDP drives a browser: one tmux session the agent and the user share, with a real PTY so the program behaves exactly as it does for a human.",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./package.json": "./package.json"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "files": [
+    "lib",
+    "assets",
+    "cordis.patch.yml",
+    "README.md",
+    "LICENSE"
+  ],
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "*",
+    "@deepseek-ai/dsh": "*",
+    "@deepseek-ai/dsh-skill": "*",
+    "@deepseek-ai/dsh-tools": "*"
+  },
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "cordis",
+    "plugin",
+    "tmux",
+    "terminal",
+    "pty",
+    "tui"
+  ],
+  "scripts": {
+    "contract": "node test/apply-contract.mjs",
+    "selftest": "node test/selftest.mjs",
+    "smoke": "node test/smoke-plugin.mjs",
+    "transport": "node test/transport.mjs",
+    "test": "node test/transport.mjs && node test/apply-contract.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Firefly-Star/dsh-termdrive.git"
+  },
+  "homepage": "https://github.com/Firefly-Star/dsh-termdrive#readme",
+  "bugs": {
+    "url": "https://github.com/Firefly-Star/dsh-termdrive/issues"
+  },
+  "author": "Firefly-Star",
+  "license": "MIT"
+}
